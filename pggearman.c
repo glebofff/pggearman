@@ -12,6 +12,10 @@
 #include "utils/memutils.h"
 #include "utils/guc.h"
 #include "utils/elog.h"
+#include "access/heapam.h"
+#include "access/htup_details.h"
+#include "access/htup.h"
+#include "funcapi.h"
 
 #include "pggearman.h"
 
@@ -206,6 +210,65 @@ Datum gman_do_high_background(PG_FUNCTION_ARGS)
 {
     PG_RETURN_TEXT_P(gman_run_cmd(pg_gman_do_high_background, fcinfo)); 
 }
+
+Datum gman_errno(PG_FUNCTION_ARGS)
+{
+    int gerrno = gearman_client_errno(globals.client);
+    PG_RETURN_INT32(gerrno);
+}
+
+Datum gman_jobstatus(PG_FUNCTION_ARGS)
+{
+    text *tjobhandle;
+    TupleDesc         tupdesc;
+    Datum             values[4];
+    HeapTuple         tuple;
+    gearman_return_t  ret;
+    char job_handle[GEARMAN_JOB_HANDLE_SIZE];
+    size_t len;
+    bool nulls[4] = {false,false,false,false};
+    bool is_known = false;
+    bool is_running = false;
+    uint32_t numerator = 0;
+    uint32_t denominator = 0;
+    
+    
+    if (PG_ARGISNULL(0)) {
+        elog(ERROR, "gearman job_handle cannot be NULL");
+	PG_RETURN_NULL();
+    }
+    
+    tjobhandle = PG_GETARG_TEXT_P(0);
+    len = VARSIZE(tjobhandle) - VARHDRSZ;
+    if (len > GEARMAN_JOB_HANDLE_SIZE) len = GEARMAN_JOB_HANDLE_SIZE;
+    memcpy (&job_handle, VARDATA(tjobhandle), len);
+    job_handle[len] = 0;
+
+    ret = gearman_client_job_status (globals.client,
+				     job_handle,
+				     &is_known,
+				     &is_running,
+				     &numerator,
+				     &denominator); 
+				
+
+    if (ret != GEARMAN_SUCCESS) {
+        elog(ERROR, "%s", gearman_client_error(globals.client));
+	PG_RETURN_NULL();
+    }
+    
+    values[0] = BoolGetDatum(is_known);
+    values[1] = BoolGetDatum(is_running);
+    values[2] = UInt32GetDatum(numerator);
+    values[3] = UInt32GetDatum(denominator);  
+    get_call_result_type(fcinfo, NULL, &tupdesc);      
+    BlessTupleDesc(tupdesc);
+
+    tuple = heap_form_tuple (tupdesc, values, &nulls);
+    PG_RETURN_DATUM( HeapTupleGetDatum(tuple));
+}
+
+
 
 Datum gman_run_cmd(int type, PG_FUNCTION_ARGS) {
 

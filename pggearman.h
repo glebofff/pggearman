@@ -31,6 +31,9 @@ Datum gman_do_low(PG_FUNCTION_ARGS);
 Datum gman_do_background(PG_FUNCTION_ARGS);
 Datum gman_do_high_background(PG_FUNCTION_ARGS);
 Datum gman_do_low_background(PG_FUNCTION_ARGS);
+Datum gman_errno(PG_FUNCTION_ARGS);
+// Datum gman_error(PG_FUNCTION_ARGS);
+Datum gman_jobstatus(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(gman_servers_set);
 PG_FUNCTION_INFO_V1(gman_do);
@@ -39,5 +42,8 @@ PG_FUNCTION_INFO_V1(gman_do_low);
 PG_FUNCTION_INFO_V1(gman_do_background);
 PG_FUNCTION_INFO_V1(gman_do_high_background);
 PG_FUNCTION_INFO_V1(gman_do_low_background);
+PG_FUNCTION_INFO_V1(gman_errno);
+// PG_FUNCTION_INFO_V1(gman_error);
+PG_FUNCTION_INFO_V1(gman_jobstatus);
 
 #endif

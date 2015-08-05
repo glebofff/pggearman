@@ -30,3 +30,12 @@ AS 'MODULE_PATHNAME', 'gman_do_high_background' LANGUAGE C;
 
 CREATE OR REPLACE FUNCTION gman_do_low_background(TEXT, TEXT) RETURNS TEXT
 AS 'MODULE_PATHNAME', 'gman_do_low_background' LANGUAGE C;
+
+CREATE OR REPLACE FUNCTION gman_errno() RETURNS integer AS
+AS 'MODULE_PATHNAME', 'gman_errno' LANGUAGE C;
+
+DROP TYPE IF EXISTS tgman_jobstatus CASCADE;
+CREATE TYPE tgman_jobstatus AS (is_known boolean, is_running boolean, numerator integer, denominator integer);
+
+CREATE OR REPLACE FUNCTION gman_jobstatus(text) RETURNS tgman_jobstatus
+AS 'MODULE_PATHNAME', 'gman_jobstatus' LANGUAGE C;
